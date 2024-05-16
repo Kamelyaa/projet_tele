@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        #messages {
+            height: 400px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .message {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+
+        .message-me {
+            background-color: #f2f2f2;
+        }
+
+        .message-other {
+            background-color: #e2e2e2;
+        }
+
+        .message span {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        #message-form {
+            margin-top: 20px;
+        }
+
+        #message-input {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #message-form button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="messages"></div>
+    <form id="message-form">
+        <input type="text" id="message-input" placeholder="Saisissez votre message">
+        <button type="submit">Envoyer</button>
+    </form>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentUser = '';
+
+        // Sélectionner des éléments du DOM
+        const messages = document.getElementById('messages');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+
+        // Écouter l'événement 'chat message' et afficher les messages reçus
+        socket.on('chat message', (message) => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.textContent = `${message.user}: ${message.text}`;
+
+            // Ajouter une classe en fonction de l'utilisateur
+            if (message.user === currentUser) {
+                messageElement.classList.add('message-me');
+            } else {
+                messageElement.classList.add('message-other');
+            }
+
+            messages.appendChild(messageElement);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        // Envoyer un message lorsque le formulaire est soumis
+        messageForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const message = messageInput.value.trim();
+            if (message !== '') {
+                socket.emit('chat message', { user: currentUser, text: message });
+                messageInput.value = '';
+            }
+        });
+
+        // Demander le nom de l'utilisateur
+        currentUser = prompt("Entrez votre nom:");
+        if (!currentUser) {
+            currentUser = "Utilisateur";
+        }
+    </script>
+</body>
+</html>
+
